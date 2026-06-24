@@ -1,0 +1,44 @@
+/* FitDraft — Hybrid design tokens.
+   Apple design language (DESIGN.md) for chrome; dark work-area for the canvas. */
+
+:root {
+  /* Accent — single interactive signal: Z-blue (electric Klein blue) */
+  --accent: #0000c5;
+  --accent-focus: #1a1aff;      /* brighter focus ring */
+  --accent-on-dark: #4d4dff;    /* electric variant for dark surfaces */
+  --accent-dim: rgba(0, 0, 197, 0.1);
+
+  /* Surfaces — neutral light grey for the chrome; pure white for the work
+     canvas + cards so garments read true. */
+  --canvas: #ffffff;            /* cards, modals, inputs */
+  --canvas-parchment: #f4f4f5;  /* default page / sidebar */
+  --surface-pearl: #fafafa;     /* ghost buttons */
+  --surface-panel: #f4f4f5;     /* sidebar panel */
+  --surface-card: #ffffff;      /* item / outfit cards */
+  --surface-card-hover: #fafafa;
+  --surface-input: #ffffff;
+
+  /* Surfaces — dark */
+  --surface-black: #000000;     /* global nav / topbar */
+  --canvas-void: #1d1d1f;       /* near-black */
+  --surface-tile-1: #272729;    /* near-black tile (legacy) */
+
+  /* Canvas work-area background */
+  --canvas-stage: #ffffff;
+
+  /* Text */
+  --ink: #1d1d1f;
+  --ink-secondary: #6e6e73;
+  --ink-muted: #7a7a7a;
+  --ink-on-accent: #ffffff;
+  --ink-on-dark: #ffffff;
+
+  /* Borders / hairlines */
+  --border-subtle: #e4e4e7;
+  --border-active: rgba(0, 0, 197, 0.55);
+  --hairline-soft: rgba(0, 0, 0, 0.08);
+
+  /* Elevation */
+  --shadow-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.22);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.18);
+}

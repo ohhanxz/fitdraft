@@ -1,0 +1,22 @@
+# dependencies
+node_modules
+
+# build output
+dist
+dist-ssr
+
+# vite cache
+node_modules/.vite
+
+# typescript build info
+*.tsbuildinfo
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+Thumbs.db
+*.local

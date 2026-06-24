@@ -1,0 +1,86 @@
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--canvas-parchment);
+    color: var(--ink);
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.03em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display headings — typewriter monospace to match the logo */
+  .font-display {
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Oversized low-contrast background wordmark */
+  .watermark {
+    font-family: 'Space Mono', 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    user-select: none;
+  }
+
+  /* Section labels — small caps */
+  .label-caps {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+}
+
+@layer components {
+  /* System-wide press micro-interaction */
+  .press {
+    transition: transform 0.12s ease;
+  }
+  .press:active {
+    transform: scale(0.95);
+  }
+
+  /* Transparent-checker backdrop for garment previews */
+  .checker {
+    background-image:
+      linear-gradient(45deg, #d8d8dc 25%, transparent 25%),
+      linear-gradient(-45deg, #d8d8dc 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #d8d8dc 75%),
+      linear-gradient(-45deg, transparent 75%, #d8d8dc 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    background-color: #ffffff;
+  }
+}
+
+/* Thin scrollbars to match the quiet chrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 9999px;
+}
