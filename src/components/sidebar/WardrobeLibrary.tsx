@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Shirt, PersonStanding } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Shirt, PersonStanding, Search, X } from 'lucide-react';
 import { CATEGORIES, type GarmentCategory } from '../../types';
 import { useWardrobe } from '../../store/wardrobeStore';
 import { BODY_PARTS } from '../../lib/bodyParts';
@@ -15,12 +15,51 @@ type Filter = GarmentCategory | 'all' | 'body';
 export function WardrobeLibrary({ onAddItem }: Props) {
   const garments = useWardrobe((s) => s.garments);
   const [active, setActive] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
 
-  const filtered =
-    active === 'all' ? garments : garments.filter((g) => g.category === active);
+  const q = query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    const byCategory =
+      active === 'all' || active === 'body'
+        ? garments
+        : garments.filter((g) => g.category === active);
+    if (!q) return byCategory;
+    // Match the name or any tag (case-insensitive, substring).
+    return byCategory.filter(
+      (g) =>
+        g.name.toLowerCase().includes(q) ||
+        g.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [garments, active, q]);
 
   return (
     <div className="flex h-full flex-col">
+      {/* Search */}
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <Search
+            size={14}
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted"
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search name or tag…"
+            aria-label="Search wardrobe"
+            className="w-full rounded-pill border border-[var(--border-subtle)] bg-canvas py-1.5 pl-8 pr-7 text-[12px] outline-none placeholder:text-ink-muted focus:border-[var(--accent-focus)]"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              aria-label="Clear search"
+              className="press absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-muted hover:bg-pearl hover:text-ink"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Category tabs */}
       <div className="flex flex-wrap gap-1.5 px-3 pb-3">
         {(['all', ...CATEGORIES] as Filter[]).map((c) => (
@@ -57,7 +96,7 @@ export function WardrobeLibrary({ onAddItem }: Props) {
               clothes and aren’t counted in the cart.
             </p>
             <div className="grid grid-cols-2 gap-3">
-              {BODY_PARTS.map((p) => (
+              {BODY_PARTS.filter((p) => !q || p.name.toLowerCase().includes(q)).map((p) => (
                 <BodyPartCard key={p.id} part={p} />
               ))}
             </div>
@@ -66,11 +105,21 @@ export function WardrobeLibrary({ onAddItem }: Props) {
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
             <Shirt className="text-ink-muted" size={28} />
             <p className="text-[13px] text-ink-secondary">
-              {garments.length === 0 ? 'Your wardrobe is empty.' : `No ${active} yet.`}
+              {q
+                ? `No items match “${query.trim()}”.`
+                : garments.length === 0
+                  ? 'Your wardrobe is empty.'
+                  : `No ${active} yet.`}
             </p>
-            <button onClick={onAddItem} className="text-[13px] text-accent hover:underline">
-              + Add your first item
-            </button>
+            {q ? (
+              <button onClick={() => setQuery('')} className="text-[13px] text-accent hover:underline">
+                Clear search
+              </button>
+            ) : (
+              <button onClick={onAddItem} className="text-[13px] text-accent hover:underline">
+                + Add your first item
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">

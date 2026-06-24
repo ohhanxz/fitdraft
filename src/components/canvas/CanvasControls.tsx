@@ -1,4 +1,4 @@
-import { ZoomIn, ZoomOut, Maximize, Undo2, Redo2, Trash2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Undo2, Redo2, Trash2, Download } from 'lucide-react';
 
 interface Props {
   onZoomIn: () => void;
@@ -7,9 +7,11 @@ interface Props {
   onUndo: () => void;
   onRedo: () => void;
   onClear: () => void;
+  onDownload: () => void;
   canUndo: boolean;
   canRedo: boolean;
   canClear: boolean;
+  canDownload: boolean;
 }
 
 function Ctl({
