@@ -33,8 +33,12 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
   const [active, setActive] = useState(0);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [exportOpen, setExportOpen] = useState(false);
   const hoverRef = useRef(false);
   const dragRef = useRef<{ x: number; moved: boolean } | null>(null);
+  // Mirror exportOpen for the window keydown handler (avoids re-binding it).
+  const exportOpenRef = useRef(false);
+  exportOpenRef.current = exportOpen;
 
   // Auto-shuffle pause control.
   const pausedRef = useRef(false);
@@ -108,6 +112,12 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      // While the export dialog is open it owns the keyboard: Escape closes it
+      // (not the whole dresser) and arrows don't browse.
+      if (exportOpenRef.current) {
+        if (e.key === 'Escape') setExportOpen(false);
+        return;
+      }
       if (e.key === 'ArrowRight') go(1);
       else if (e.key === 'ArrowLeft') go(-1);
       else if (e.key === 'Escape') onClose();
@@ -298,18 +308,14 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
               {editingName ? 'Save' : 'Rename'}
             </button>
             <button
-              onClick={() => exportActive('jpeg')}
-              title="Download as JPEG (white background)"
-              className="press flex items-center gap-1 rounded-pill border border-accent bg-[var(--accent-dim)] px-2.5 py-1 text-[12px] font-medium text-accent hover:brightness-95"
-            >
-              <Download size={12} /> Export JPG
-            </button>
-            <button
-              onClick={() => exportActive('png')}
-              title="Download as a transparent PNG"
+              onClick={() => {
+                pauseSticky();
+                setExportOpen(true);
+              }}
+              title="Export this outfit"
               className="press flex items-center gap-1 rounded-pill border border-[var(--border-subtle)] bg-canvas px-2.5 py-1 text-[12px] text-ink-secondary hover:bg-pearl"
             >
-              PNG
+              <Download size={12} /> Export
             </button>
             <button
               onClick={deleteActive}
@@ -334,6 +340,55 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
               aria-label={`Go to ${o.name}`}
             />
           ))}
+        </div>
+      )}
+
+      {/* Export format chooser — blurs the dresser behind it. Must sit above the
+          fanned cards (inline z up to 100) and the nav arrows (z-200). */}
+      {exportOpen && (
+        <div
+          className="absolute inset-0 z-[300] flex items-center justify-center bg-black/40 backdrop-blur-md"
+          onClick={() => setExportOpen(false)}
+        >
+          <div
+            className="w-[300px] rounded-xl border border-[var(--border-subtle)] bg-canvas p-5 shadow-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-[18px] leading-tight">Export look</h3>
+            <p className="mt-0.5 truncate text-[12px] text-ink-muted" title={activeOutfit?.name}>
+              {activeOutfit?.name}
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              <button
+                onClick={() => {
+                  void exportActive('jpeg');
+                  setExportOpen(false);
+                }}
+                className="press flex flex-col items-center gap-1 rounded-lg border border-accent bg-[var(--accent-dim)] px-3 py-3 text-accent hover:brightness-95"
+              >
+                <Download size={18} />
+                <span className="text-[13px] font-semibold">JPG</span>
+                <span className="text-[10px] leading-tight text-accent">White background</span>
+              </button>
+              <button
+                onClick={() => {
+                  void exportActive('png');
+                  setExportOpen(false);
+                }}
+                className="press flex flex-col items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-canvas px-3 py-3 text-ink-secondary hover:bg-pearl"
+              >
+                <Download size={18} />
+                <span className="text-[13px] font-semibold">PNG</span>
+                <span className="text-[10px] leading-tight text-ink-muted">Transparent</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setExportOpen(false)}
+              className="press mt-3 w-full rounded-pill py-1.5 text-[12px] text-ink-muted hover:bg-pearl"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>
