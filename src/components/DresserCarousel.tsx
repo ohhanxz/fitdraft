@@ -139,7 +139,7 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
 
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 top-12 z-30 flex flex-col bg-[var(--canvas-stage)] transition-all duration-300 ${
+      className={`absolute inset-x-0 bottom-0 top-12 z-30 flex flex-col overflow-hidden bg-[var(--canvas-stage)] transition-[opacity,transform] duration-300 ease-out [will-change:opacity,transform] ${
         open ? 'opacity-100' : 'pointer-events-none scale-105 opacity-0'
       }`}
     >

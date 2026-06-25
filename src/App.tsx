@@ -220,7 +220,7 @@ export default function App() {
   const dresser = tab === 'outfits';
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col overflow-hidden">
       <Topbar
         onAddItem={() => setAddOpen(true)}
         onSaveOutfit={handleSave}
@@ -228,7 +228,7 @@ export default function App() {
       />
 
       <div
-        className={`flex min-h-0 flex-1 transition-all duration-300 ${
+        className={`flex min-h-0 flex-1 transition-[opacity,transform] duration-300 ease-out [will-change:opacity,transform] ${
           dresser ? 'pointer-events-none scale-[0.98] opacity-0' : 'opacity-100'
         }`}
       >
