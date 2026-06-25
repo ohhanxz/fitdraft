@@ -3,16 +3,98 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FitDraft</title>
+    <title>FitDraft — build outfits visually</title>
+
+    <!-- SEO -->
+    <meta
+      name="description"
+      content="FitDraft is a 2D virtual outfit builder. Drag garment images onto a clean canvas, compose looks, and save your wardrobe — all in the browser."
+    />
+    <meta name="theme-color" content="#0000c5" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
+    <!-- Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FitDraft — build outfits visually" />
+    <meta
+      property="og:description"
+      content="Drag garment images onto a clean canvas, compose looks, and save your wardrobe — all in the browser."
+    />
+    <meta property="og:image" content="/logo.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="FitDraft — build outfits visually" />
+    <meta
+      name="twitter:description"
+      content="Drag garment images onto a clean canvas, compose looks, and save your wardrobe — all in the browser."
+    />
+    <meta name="twitter:image" content="/logo.png" />
+
+    <!-- Fonts: Space Mono is the entire design system. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
+
+    <style>
+      /* First-paint loading shell — shown until React mounts and replaces #root. */
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #f4f4f5;
+        font-family: 'Space Mono', ui-monospace, monospace;
+        color: #0000c5;
+      }
+      #app-loading .ring {
+        width: 34px;
+        height: 34px;
+        border: 3px solid rgba(0, 0, 197, 0.18);
+        border-top-color: #0000c5;
+        border-radius: 50%;
+        animation: app-spin 0.8s linear infinite;
+      }
+      #app-loading .label {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+      }
+      @keyframes app-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-loading">
+        <div class="ring"></div>
+        <div class="label">FitDraft…</div>
+      </div>
+    </div>
+    <noscript>
+      <div
+        style="
+          font-family: 'Space Mono', monospace;
+          max-width: 480px;
+          margin: 80px auto;
+          padding: 0 24px;
+          text-align: center;
+          color: #18181b;
+        "
+      >
+        <h1 style="color: #0000c5">FitDraft</h1>
+        <p>FitDraft needs JavaScript enabled to build and save outfits. Please turn it on and reload.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

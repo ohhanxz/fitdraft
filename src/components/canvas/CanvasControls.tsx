@@ -57,6 +57,13 @@ export function CanvasControls(props: Props) {
         <ZoomIn size={16} />
       </Ctl>
       <div className="mx-1 h-5 w-px bg-[var(--border-subtle)]" />
+      <Ctl
+        onClick={props.onDownload}
+        disabled={!props.canDownload}
+        title="Download canvas as PNG"
+      >
+        <Download size={16} />
+      </Ctl>
       <Ctl onClick={props.onClear} disabled={!props.canClear} title="Clear canvas">
         <Trash2 size={16} />
       </Ctl>

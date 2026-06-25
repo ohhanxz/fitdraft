@@ -12,7 +12,7 @@ import { DresserCarousel } from './components/DresserCarousel';
 import { X } from 'lucide-react';
 import { useWardrobe } from './store/wardrobeStore';
 import { useUndoRedo } from './hooks/useUndoRedo';
-import { putImage } from './lib/imageStore';
+import { putImage, requestPersistentStorage } from './lib/imageStore';
 
 function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null;
@@ -48,6 +48,12 @@ export default function App() {
   const clipboard = useRef<string[]>([]);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
+  // Ask the browser to keep our localStorage + IndexedDB durable so a built-up
+  // wardrobe isn't silently evicted under storage pressure.
+  useEffect(() => {
+    void requestPersistentStorage();
+  }, []);
+
   // z-order nudge only makes sense for a single selected layer.
   const singleId = selectedItemIds.length === 1 ? selectedItemIds[0] : null;
 
@@ -71,6 +77,17 @@ export default function App() {
     if (canvasItems.length === 0) return;
     setSavePreview(canvasRef.current?.exportPNG() ?? null);
     setSaveOpen(true);
+  }, [canvasItems.length]);
+
+  const handleDownload = useCallback(() => {
+    if (canvasItems.length === 0) return;
+    const url = canvasRef.current?.exportPNG();
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.download = `fitdraft-${stamp}.png`;
+    a.click();
   }, [canvasItems.length]);
 
   const cycleSelection = useCallback(() => {
@@ -232,6 +249,7 @@ export default function App() {
             onReset={() => canvasRef.current?.resetView()}
             onUndo={undo}
             onRedo={redo}
+            onDownload={handleDownload}
             onClear={() => {
               if (canvasItems.length && window.confirm('Clear everything off the canvas?')) {
                 clearCanvas();
@@ -239,6 +257,7 @@ export default function App() {
             }}
             canUndo={canUndo}
             canRedo={canRedo}
+            canDownload={canvasItems.length > 0}
             canClear={canvasItems.length > 0}
           />
 

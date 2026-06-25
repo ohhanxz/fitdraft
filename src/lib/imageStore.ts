@@ -18,6 +18,17 @@ export async function putImage(blob: Blob, prefix = 'img'): Promise<string> {
   return key;
 }
 
+/** Persist a blob under a caller-supplied key (used when restoring a backup). */
+export async function putImageWithKey(key: string, blob: Blob): Promise<void> {
+  await set(key, blob, store);
+}
+
+/** Read the raw blob for a key, or null. Built-in `/path` keys have no blob. */
+export async function getImageBlob(key: string): Promise<Blob | null> {
+  if (key.startsWith('/')) return null;
+  return (await get<Blob>(key, store)) ?? null;
+}
+
 /** Resolve a storage key to an object URL (cached for the session). */
 export async function getImageUrl(key: string): Promise<string | null> {
   // Built-in body parts use static public URLs as their "key".
@@ -38,6 +49,21 @@ export async function deleteImage(key: string): Promise<void> {
     urlCache.delete(key);
   }
   await del(key, store);
+}
+
+/**
+ * Ask the browser to mark this origin's storage as persistent so the wardrobe
+ * (localStorage + IndexedDB) isn't silently evicted under storage pressure.
+ * Best-effort: resolves to whether persistence is granted.
+ */
+export async function requestPersistentStorage(): Promise<boolean> {
+  try {
+    if (!navigator.storage?.persist) return false;
+    if (await navigator.storage.persisted()) return true;
+    return await navigator.storage.persist();
+  } catch {
+    return false;
+  }
 }
 
 /** Remove orphaned images no longer referenced by any record. */

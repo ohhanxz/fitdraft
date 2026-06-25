@@ -1,6 +1,7 @@
 import { PanelLeft, ChevronLeft } from 'lucide-react';
 import { WardrobeLibrary } from './WardrobeLibrary';
 import { SavedOutfits } from './SavedOutfits';
+import { BackupControls } from './BackupControls';
 
 export type SidebarTab = 'wardrobe' | 'outfits';
 
@@ -57,6 +58,8 @@ export function Sidebar({ collapsed, onToggle, tab, onTabChange, onAddItem, onLo
             <SavedOutfits onLoad={onLoadOutfit} />
           )}
         </div>
+
+        <BackupControls />
       </div>
 
       {/* Collapsed rail */}
