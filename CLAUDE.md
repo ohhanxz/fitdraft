@@ -77,5 +77,11 @@ React 18 + Vite + TypeScript · Tailwind (+ CSS variables) · **Konva/react-konv
 - `public/` holds runtime assets: `logo.png`, `logo-white.png`, `limbs/*` (17 parts),
   `figures/{female,male}.png`. Source images were processed (sliced + chroma-keyed) and deleted.
 - Background-removal model is `isnet_fp16` (the brief's `'small'` is an older API).
+- **Background-removal assets are self-hosted** — the model + ONNX WASM are mirrored into
+  `public/imgly/` (committed) and `useBackgroundRemoval` sets `publicPath` to `<origin>/imgly/`,
+  so nothing is fetched from img.ly's CDN at runtime (no third-party dependency, works offline).
+  The assets are version-locked to `@imgly/background-removal` (pinned `1.7.0`) and
+  `onnxruntime-web` (pinned `1.21.0`). If you bump either, update `VERSION` in
+  `scripts/fetch-bg-model.mjs` and re-run it to re-mirror matching assets.
 - When editing files while the dev server runs, Vite HMR may log stale "Failed to reload"
   warnings mid-edit — a full reload clears them; trust `tsc` + a clean reload.

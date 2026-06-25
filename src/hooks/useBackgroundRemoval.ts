@@ -15,6 +15,11 @@ export function useBackgroundRemoval() {
       const { removeBackground } = await import('@imgly/background-removal');
       const result = await removeBackground(input, {
         model: 'isnet_fp16',
+        // Self-hosted model + WASM (mirrored into public/imgly/ — see
+        // scripts/fetch-bg-model.mjs). Resolves to <origin>/imgly/ so nothing
+        // is fetched from a third-party CDN at runtime. document.baseURI keeps
+        // it correct under any Vite base path.
+        publicPath: new URL('imgly/', document.baseURI).href,
         output: { format: 'image/png', quality: 0.9 },
       });
       setStatus('done');
