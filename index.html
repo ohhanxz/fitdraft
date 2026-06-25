@@ -41,44 +41,18 @@
     />
 
     <style>
-      /* First-paint loading shell — shown until React mounts and replaces #root. */
+      /* First-paint shell — a solid Z-blue field that the React splash screen
+         continues seamlessly once it mounts (no flash of a different colour). */
       #app-loading {
         position: fixed;
         inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 18px;
-        background: #f4f4f5;
-        font-family: 'Space Mono', ui-monospace, monospace;
-        color: #0000c5;
-      }
-      #app-loading .ring {
-        width: 34px;
-        height: 34px;
-        border: 3px solid rgba(0, 0, 197, 0.18);
-        border-top-color: #0000c5;
-        border-radius: 50%;
-        animation: app-spin 0.8s linear infinite;
-      }
-      #app-loading .label {
-        font-size: 13px;
-        letter-spacing: 0.04em;
-      }
-      @keyframes app-spin {
-        to {
-          transform: rotate(360deg);
-        }
+        background: #0000c5;
       }
     </style>
   </head>
   <body>
     <div id="root">
-      <div id="app-loading">
-        <div class="ring"></div>
-        <div class="label">FitDraft…</div>
-      </div>
+      <div id="app-loading"></div>
     </div>
     <noscript>
       <div
