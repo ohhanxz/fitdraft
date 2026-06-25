@@ -228,8 +228,8 @@ export default function App() {
       />
 
       <div
-        className={`flex min-h-0 flex-1 transition-[opacity,transform] duration-300 ease-out [will-change:opacity,transform] ${
-          dresser ? 'pointer-events-none scale-[0.98] opacity-0' : 'opacity-100'
+        className={`flex min-h-0 flex-1 transition-[opacity,transform] duration-[420ms] ease-out [will-change:opacity,transform] ${
+          dresser ? 'pointer-events-none scale-[0.99] opacity-0' : 'opacity-100'
         }`}
       >
         <Sidebar
