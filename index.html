@@ -32,12 +32,22 @@
     />
     <meta name="twitter:image" content="/logo.png" />
 
-    <!-- Fonts: Space Mono is the entire design system. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts: Space Mono is the entire design system. Self-hosted (see
+         src/styles/fonts.css + public/fonts/) — no third-party font request.
+         Preload the two main weights so text paints without a flash. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/space-mono-400-latin.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/space-mono-700-latin.woff2"
+      crossorigin
     />
 
     <style>

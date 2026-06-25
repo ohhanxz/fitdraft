@@ -8,6 +8,10 @@
 *.jpeg binary
 *.webp binary
 *.ico binary
+*.woff2 binary
+*.woff binary
+*.ttf binary
+*.otf binary
 
 # Self-hosted background-removal model chunks are content-addressed binary
 # files with NO extension — git would otherwise misdetect them as text and
