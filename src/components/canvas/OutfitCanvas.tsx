@@ -88,6 +88,7 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
   const sessionRef = useRef<EditSession | null>(null);
   const prevSizeRef = useRef({ width: 0, height: 0 });
   const erasingRef = useRef(false);
+  const brushCursorRef = useRef<HTMLDivElement>(null);
   const marqueeRef = useRef(false);
   const marqueeBoxRef = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
   const groupDragRef = useRef<{ anchorId: string; start: Map<string, { x: number; y: number }> } | null>(
@@ -217,6 +218,21 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
     [pos, scale],
   );
 
+  // Move the Photoshop-style brush ring imperatively so we don't re-render the
+  // whole node tree on every mouse move while erasing.
+  function moveBrushCursor(e: React.MouseEvent) {
+    const el = brushCursorRef.current;
+    if (!el) return;
+    if (tool !== 'erase') {
+      el.style.display = 'none';
+      return;
+    }
+    const rect = wrapRef.current!.getBoundingClientRect();
+    el.style.display = 'block';
+    el.style.left = `${e.clientX - rect.left}px`;
+    el.style.top = `${e.clientY - rect.top}px`;
+  }
+
   function snapshot(s: EditSession): ImageData | null {
     const ctx = s.canvas.getContext('2d');
     return ctx ? ctx.getImageData(0, 0, s.canvas.width, s.canvas.height) : null;
@@ -303,6 +319,13 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
       .forEach((item) =>
         updateCanvasItem(item.id, axis === 'x' ? { flipX: !item.flipX } : { flipY: !item.flipY }),
       );
+  }
+
+  // Opacity applies to every unlocked selected layer.
+  function setSelectionOpacity(value: number) {
+    canvasItems
+      .filter((c) => selectedItemIds.includes(c.id) && !c.locked)
+      .forEach((item) => updateCanvasItem(item.id, { opacity: value }));
   }
 
   // --- Selection from a garment click ---
@@ -429,13 +452,78 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
       const stage = stageRef.current;
       const tr = trRef.current;
       if (!stage) return null;
+
+      const items = canvasItems.filter((c) => c.visible);
       const kept = tr?.nodes() ?? [];
       tr?.nodes([]);
       // Hide the white backing rect so the outfit exports on a transparent
       // background (so outfits overlap cleanly in the dresser).
       bgRef.current?.visible(false);
-      tr?.getLayer()?.batchDraw();
-      const url = stage.toDataURL({ pixelRatio: 2 });
+
+      // Remember the current view so we can restore it after exporting.
+      const savedScale = stage.scaleX();
+      const savedPos = { x: stage.x(), y: stage.y() };
+
+      let url: string;
+      if (items.length === 0 || !size.width || !size.height) {
+        // Nothing to frame — fall back to a plain viewport capture.
+        tr?.getLayer()?.batchDraw();
+        url = stage.toDataURL({ pixelRatio: 2 });
+      } else {
+        // World-space bounding box of every visible layer (exact rotated AABB),
+        // plus the figure guide when it's on so looks are framed head-to-toe and
+        // consistently regardless of the zoom/pan at save time.
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const c of items) {
+          const hw = c.width / 2;
+          const hh = c.height / 2;
+          const rad = ((c.rotation || 0) * Math.PI) / 180;
+          const ca = Math.abs(Math.cos(rad));
+          const sa = Math.abs(Math.sin(rad));
+          const ahw = hw * ca + hh * sa;
+          const ahh = hw * sa + hh * ca;
+          minX = Math.min(minX, c.x - ahw);
+          maxX = Math.max(maxX, c.x + ahw);
+          minY = Math.min(minY, c.y - ahh);
+          maxY = Math.max(maxY, c.y + ahh);
+        }
+        if (figureImg && figure !== 'off') {
+          const figW = FIGURE_H * (figureImg.width / figureImg.height);
+          minX = Math.min(minX, -figW / 2);
+          maxX = Math.max(maxX, figW / 2);
+          minY = Math.min(minY, -FIGURE_H / 2);
+          maxY = Math.max(maxY, FIGURE_H / 2);
+        }
+        const pad = 0.06 * Math.max(maxX - minX, maxY - minY);
+        minX -= pad;
+        minY -= pad;
+        maxX += pad;
+        maxY += pad;
+        const bw = maxX - minX;
+        const bh = maxY - minY;
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+
+        // Fit the bbox inside the on-screen stage (toDataURL can only capture
+        // what's actually rendered in the container).
+        const fit = Math.min(size.width / bw, size.height / bh);
+        stage.scale({ x: fit, y: fit });
+        stage.position({ x: size.width / 2 - cx * fit, y: size.height / 2 - cy * fit });
+        stage.batchDraw();
+
+        const left = size.width / 2 - (bw / 2) * fit;
+        const top = size.height / 2 - (bh / 2) * fit;
+        // Normalise output to ~1000px on the long edge for consistent sharpness.
+        const pixelRatio = 1000 / (Math.max(bw, bh) * fit);
+        url = stage.toDataURL({ x: left, y: top, width: bw * fit, height: bh * fit, pixelRatio });
+      }
+
+      // Restore the view + chrome.
+      stage.scale({ x: savedScale, y: savedScale });
+      stage.position(savedPos);
       bgRef.current?.visible(true);
       tr?.nodes(kept);
       tr?.getLayer()?.batchDraw();
@@ -469,6 +557,8 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
   const unlockedSelected = canvasItems.filter(
     (c) => selectedItemIds.includes(c.id) && !c.locked,
   );
+  // Opacity shown in the toolbar reflects the first selected layer.
+  const selectionOpacity = unlockedSelected[0]?.opacity ?? 1;
 
   // Marquee overlay rect in screen px.
   const mRect = marquee && {
@@ -485,6 +575,10 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
       style={{ cursor }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={onDrop}
+      onMouseMove={moveBrushCursor}
+      onMouseLeave={() => {
+        if (brushCursorRef.current) brushCursorRef.current.style.display = 'none';
+      }}
     >
       <Stage
         ref={stageRef}
@@ -539,6 +633,7 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
                 rotation={item.rotation}
                 flipX={item.flipX}
                 flipY={item.flipY}
+                opacity={item.opacity}
                 visible={item.visible}
                 editable={moveMode}
                 draggable={moveMode}
@@ -595,6 +690,18 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
         </div>
       )}
 
+      {/* Photoshop-style brush ring showing where/how big the eraser is. */}
+      <div
+        ref={brushCursorRef}
+        className="pointer-events-none absolute z-10 rounded-full border-2 border-[#0000c5] shadow-[0_0_0_1.5px_rgba(255,255,255,0.85)]"
+        style={{
+          display: 'none',
+          width: brush,
+          height: brush,
+          transform: 'translate(-50%, -50%)',
+        }}
+      />
+
       <CanvasToolbar
         tool={tool}
         setTool={(t) => {
@@ -604,6 +711,8 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
         }}
         brush={brush}
         setBrush={setBrush}
+        opacity={selectionOpacity}
+        setOpacity={setSelectionOpacity}
         onFlipH={() => flip('x')}
         onFlipV={() => flip('y')}
         hasSelection={unlockedSelected.length > 0}

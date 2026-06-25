@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Layers, RefreshCw, Pencil, Download, Check } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, RefreshCw, Pencil, Download, Check, Trash2 } from 'lucide-react';
 import type { Outfit } from '../types';
 import { useWardrobe } from '../store/wardrobeStore';
 import { useImageUrl } from '../hooks/useImageUrl';
@@ -28,6 +28,7 @@ function OutfitFace({ outfit }: { outfit: Outfit }) {
 export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }: Props) {
   const outfits = useWardrobe((s) => s.outfits);
   const renameOutfit = useWardrobe((s) => s.renameOutfit);
+  const deleteOutfit = useWardrobe((s) => s.deleteOutfit);
   const [active, setActive] = useState(0);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
@@ -124,6 +125,15 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
   function commitRename() {
     if (activeOutfit) renameOutfit(activeOutfit.id, nameDraft.trim() || activeOutfit.name);
     setEditingName(false);
+  }
+
+  function deleteActive() {
+    if (!activeOutfit) return;
+    pauseSticky();
+    if (!window.confirm(`Delete “${activeOutfit.name}”? This can’t be undone.`)) return;
+    deleteOutfit(activeOutfit.id);
+    // Land on a still-valid neighbour (array shrinks by one).
+    setActive((a) => Math.max(0, Math.min(a, n - 2)));
   }
 
   async function exportActive() {
@@ -294,6 +304,13 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
               className="press flex items-center gap-1 rounded-pill border border-[var(--border-subtle)] bg-canvas px-2.5 py-1 text-[12px] text-ink-secondary hover:bg-pearl"
             >
               <Download size={12} /> Export PNG
+            </button>
+            <button
+              onClick={deleteActive}
+              title="Delete this outfit"
+              className="press flex items-center gap-1 rounded-pill border border-[var(--border-subtle)] bg-canvas px-2.5 py-1 text-[12px] text-ink-secondary hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+            >
+              <Trash2 size={12} /> Delete
             </button>
           </div>
         </div>

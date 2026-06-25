@@ -61,6 +61,7 @@ export interface CanvasItem {
   rotation: number;
   flipX?: boolean;
   flipY?: boolean;
+  opacity?: number; // 0–1 layer transparency; undefined = fully opaque
   editedImageKey?: string; // per-instance erased image (IndexedDB); overrides the garment image
   visible: boolean;
   locked: boolean;

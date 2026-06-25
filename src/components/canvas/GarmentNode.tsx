@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import type Konva from 'konva';
 import { useImageUrl } from '../../hooks/useImageUrl';
@@ -23,6 +23,7 @@ interface Props {
   rotation: number;
   flipX?: boolean;
   flipY?: boolean;
+  opacity?: number;
   visible: boolean;
   editable: boolean; // eligible for the transformer (move mode, unlocked)
   draggable: boolean;
@@ -41,6 +42,7 @@ export function GarmentNode({
   rotation,
   flipX,
   flipY,
+  opacity,
   visible,
   editable,
   draggable,
@@ -50,8 +52,30 @@ export function GarmentNode({
 }: Props) {
   const url = useImageUrl(overrideImage ? null : imageKey);
   const loaded = useHtmlImage(url);
-  const img = overrideImage ?? loaded;
+  const baseImg = overrideImage ?? loaded;
   const ref = useRef<Konva.Image | null>(null);
+
+  // Flip handling: during an erase session (overrideImage set, no transformer
+  // attached) we flip via node scale so the live erase canvas stays in sync.
+  // Otherwise we bake the flip into an offscreen canvas and keep the node's
+  // scale positive — that stops Konva's Transformer from mirroring its handles,
+  // so the rotate handle stays at the TOP regardless of flip.
+  const bakeFlip = !overrideImage && (!!flipX || !!flipY);
+  const img = useMemo(() => {
+    if (!bakeFlip || !baseImg) return baseImg;
+    const iw = (baseImg as HTMLImageElement).naturalWidth || baseImg.width;
+    const ih = (baseImg as HTMLImageElement).naturalHeight || baseImg.height;
+    if (!iw || !ih) return baseImg;
+    const c = document.createElement('canvas');
+    c.width = iw;
+    c.height = ih;
+    const ctx = c.getContext('2d');
+    if (!ctx) return baseImg;
+    ctx.translate(flipX ? iw : 0, flipY ? ih : 0);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    ctx.drawImage(baseImg, 0, 0);
+    return c;
+  }, [bakeFlip, baseImg, flipX, flipY]);
 
   useEffect(() => {
     registerNode(id, ref.current);
@@ -60,8 +84,10 @@ export function GarmentNode({
 
   if (!visible || !img) return null;
 
-  const sx = flipX ? -1 : 1;
-  const sy = flipY ? -1 : 1;
+  // Negative scale only when flipping via the node (erase session); baked flips
+  // keep scale positive.
+  const sx = !bakeFlip && flipX ? -1 : 1;
+  const sy = !bakeFlip && flipY ? -1 : 1;
 
   return (
     <KonvaImage
@@ -80,6 +106,7 @@ export function GarmentNode({
       scaleX={sx}
       scaleY={sy}
       rotation={rotation}
+      opacity={opacity ?? 1}
       draggable={draggable}
       listening={editable}
       shadowColor="black"

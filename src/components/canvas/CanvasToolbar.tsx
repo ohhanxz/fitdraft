@@ -1,4 +1,11 @@
-import { MousePointer2, Eraser, FlipHorizontal2, FlipVertical2, PersonStanding } from 'lucide-react';
+import {
+  MousePointer2,
+  Eraser,
+  FlipHorizontal2,
+  FlipVertical2,
+  PersonStanding,
+  Droplet,
+} from 'lucide-react';
 import type { FigureGuide } from '../../store/wardrobeStore';
 
 export type Tool = 'move' | 'erase';
@@ -8,9 +15,11 @@ interface Props {
   setTool: (t: Tool) => void;
   brush: number;
   setBrush: (n: number) => void;
+  opacity: number; // 0–1 opacity of the current selection
+  setOpacity: (n: number) => void;
   onFlipH: () => void;
   onFlipV: () => void;
-  hasSelection: boolean; // ≥1 unlocked selected (flip)
+  hasSelection: boolean; // ≥1 unlocked selected (flip / opacity)
   canErase: boolean; // exactly one unlocked selected
   figure: FigureGuide;
   setFigure: (f: FigureGuide) => void;
@@ -48,6 +57,8 @@ export function CanvasToolbar({
   setTool,
   brush,
   setBrush,
+  opacity,
+  setOpacity,
   onFlipH,
   onFlipV,
   hasSelection,
@@ -86,6 +97,24 @@ export function CanvasToolbar({
             onChange={(e) => setBrush(Number(e.target.value))}
             className="h-1 w-20 accent-[var(--accent)]"
           />
+        </div>
+      )}
+
+      {/* Opacity of the selected layer(s) — move mode only. */}
+      {tool === 'move' && hasSelection && (
+        <div className="flex items-center gap-1.5 pl-1.5" title="Layer transparency">
+          <Droplet size={14} className="text-ink-muted" />
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(opacity * 100)}
+            onChange={(e) => setOpacity(Number(e.target.value) / 100)}
+            className="h-1 w-20 accent-[var(--accent)]"
+          />
+          <span className="w-7 text-right text-[11px] tabular-nums text-ink-muted">
+            {Math.round(opacity * 100)}%
+          </span>
         </div>
       )}
 
