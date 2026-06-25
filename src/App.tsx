@@ -102,6 +102,10 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return;
+      // While the Add/Edit/Save modal owns the screen, don't run canvas
+      // shortcuts. Crucially, this stops Ctrl+V from being preventDefault'd
+      // here so the native paste reaches the ItemEditor's image-slot listener.
+      if (addOpen || saveOpen || editingGarmentId) return;
       const mod = e.metaKey || e.ctrlKey;
 
       if (mod && e.key.toLowerCase() === 'b') {
@@ -173,6 +177,9 @@ export default function App() {
     setSelectedItem,
     cycleSelection,
     reorder,
+    addOpen,
+    saveOpen,
+    editingGarmentId,
   ]);
 
   async function confirmSave(name: string) {
