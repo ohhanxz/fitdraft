@@ -20,3 +20,7 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 *.local
+
+# stray site-plan skill artifacts (not part of FitDraft)
+site_plan*
+site-plan-output/
