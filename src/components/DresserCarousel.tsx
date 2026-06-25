@@ -4,6 +4,7 @@ import type { Outfit } from '../types';
 import { useWardrobe } from '../store/wardrobeStore';
 import { useImageUrl } from '../hooks/useImageUrl';
 import { getImageUrl } from '../lib/imageStore';
+import { downloadImageAs } from '../lib/imageUtils';
 
 interface Props {
   open: boolean;
@@ -136,15 +137,13 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
     setActive((a) => Math.max(0, Math.min(a, n - 2)));
   }
 
-  async function exportActive() {
+  async function exportActive(format: 'jpeg' | 'png') {
     pauseSticky();
     if (!activeOutfit) return;
     const url = await getImageUrl(activeOutfit.thumbnailKey);
     if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${activeOutfit.name.replace(/\s+/g, '-').toLowerCase() || 'outfit'}.png`;
-    a.click();
+    const name = activeOutfit.name.replace(/\s+/g, '-').toLowerCase() || 'outfit';
+    await downloadImageAs(url, name, format);
   }
 
   return (
@@ -299,11 +298,18 @@ export function DresserCarousel({ open, rebuilding, onRebuild, onClose, onPick }
               {editingName ? 'Save' : 'Rename'}
             </button>
             <button
-              onClick={exportActive}
-              title="Download this outfit as a PNG"
+              onClick={() => exportActive('jpeg')}
+              title="Download as JPEG (white background)"
+              className="press flex items-center gap-1 rounded-pill border border-accent bg-[var(--accent-dim)] px-2.5 py-1 text-[12px] font-medium text-accent hover:brightness-95"
+            >
+              <Download size={12} /> Export JPG
+            </button>
+            <button
+              onClick={() => exportActive('png')}
+              title="Download as a transparent PNG"
               className="press flex items-center gap-1 rounded-pill border border-[var(--border-subtle)] bg-canvas px-2.5 py-1 text-[12px] text-ink-secondary hover:bg-pearl"
             >
-              <Download size={12} /> Export PNG
+              PNG
             </button>
             <button
               onClick={deleteActive}
