@@ -1,0 +1,16 @@
+# Normalise source line endings in the repo (LF). More specific binary rules
+# below override this (git uses the LAST matching pattern per attribute).
+* text=auto
+
+# Image assets are binary (never line-ending converted).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+
+# Self-hosted background-removal model chunks are content-addressed binary
+# files with NO extension — git would otherwise misdetect them as text and
+# apply CRLF/LF conversion, corrupting the model. Force exact-byte storage.
+# (Listed last so it wins over `* text=auto`.)
+public/imgly/** binary
