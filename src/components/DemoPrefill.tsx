@@ -31,11 +31,12 @@ export function DemoPrefill() {
 
   if (phase === 'done') return null; // wardrobe is now populated — hide the button
 
+  // Lives in the top blue bar (white pill on the Z-blue background).
   return (
     <button
       onClick={load}
       disabled={phase === 'loading'}
-      className="press fixed left-1/2 top-[60px] z-40 flex -translate-x-1/2 items-center gap-2 rounded-pill bg-accent px-4 py-2 text-[13px] font-semibold text-[var(--ink-on-accent)] shadow-panel hover:brightness-110 disabled:opacity-70"
+      className="press flex items-center gap-1.5 rounded-pill bg-white px-3 py-1.5 text-[13px] font-semibold text-[var(--accent)] shadow-sm hover:brightness-95 disabled:opacity-70"
       title="Load the demo wardrobe and outfits (presentation only)"
     >
       {phase === 'loading' ? (

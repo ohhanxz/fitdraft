@@ -1,5 +1,6 @@
 import { Plus, Bookmark } from 'lucide-react';
 import { Button } from './ui/Button';
+import { DemoPrefill } from './DemoPrefill'; // TEMPORARY presentation demo button
 
 interface Props {
   onAddItem: () => void;
@@ -13,6 +14,8 @@ export function Topbar({ onAddItem, onSaveOutfit, canSave }: Props) {
       <img src="/logo-white.png?v=2" alt="FitDraft" className="h-8 w-auto object-contain" />
 
       <div className="flex items-center gap-2">
+        {/* TEMPORARY presentation demo loader — remove with the component + json. */}
+        <DemoPrefill />
         <Button variant="utility" onClick={onAddItem}>
           <Plus size={15} /> Add Item
         </Button>
