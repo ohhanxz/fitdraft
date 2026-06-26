@@ -10,6 +10,7 @@ import { ItemEditor } from './components/modals/ItemEditor';
 import { SaveOutfitModal } from './components/modals/SaveOutfitModal';
 import { DresserCarousel } from './components/DresserCarousel';
 import { SplashScreen } from './components/SplashScreen';
+import { DemoPrefill } from './components/DemoPrefill';
 import { X } from 'lucide-react';
 import { useWardrobe } from './store/wardrobeStore';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -310,6 +311,8 @@ export default function App() {
       />
 
       <SplashScreen />
+      {/* TEMPORARY: presentation-only demo loader — remove with the component + json. */}
+      <DemoPrefill />
 
       <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} />
       <SaveOutfitModal

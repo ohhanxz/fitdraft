@@ -13,6 +13,9 @@
 *.ttf binary
 *.otf binary
 
+# Temporary presentation demo wardrobe — big base64 blob, treat as binary.
+public/demo-wardrobe.json binary
+
 # Self-hosted background-removal model chunks are content-addressed binary
 # files with NO extension — git would otherwise misdetect them as text and
 # apply CRLF/LF conversion, corrupting the model. Force exact-byte storage.
