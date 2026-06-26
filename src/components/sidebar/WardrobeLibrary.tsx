@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Shirt, PersonStanding, Search, X } from 'lucide-react';
-import { CATEGORIES, IMPORT_TAG, type GarmentCategory } from '../../types';
+import { Shirt, PersonStanding, Search, X, Plus } from 'lucide-react';
+import { CATEGORIES, IMPORT_TAG } from '../../types';
 import { useWardrobe } from '../../store/wardrobeStore';
 import { BODY_PARTS } from '../../lib/bodyParts';
 import { ItemCard } from './ItemCard';
@@ -10,12 +10,27 @@ interface Props {
   onAddItem: () => void;
 }
 
-type Filter = GarmentCategory | 'all' | 'body';
-
 export function WardrobeLibrary({ onAddItem }: Props) {
   const garments = useWardrobe((s) => s.garments);
-  const [active, setActive] = useState<Filter>('all');
+  const customCategories = useWardrobe((s) => s.customCategories);
+  const addCategory = useWardrobe((s) => s.addCategory);
+  const removeCategory = useWardrobe((s) => s.removeCategory);
+  const [active, setActive] = useState<string>('all');
   const [query, setQuery] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [newCat, setNewCat] = useState('');
+
+  function commitAdd() {
+    const created = addCategory(newCat);
+    if (created) setActive(created);
+    setNewCat('');
+    setAdding(false);
+  }
+  function deleteCat(cat: string) {
+    if (!window.confirm(`Delete the “${cat}” category? Items in it move to Accessories.`)) return;
+    removeCategory(cat);
+    if (active === cat) setActive('all');
+  }
 
   const q = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -64,7 +79,7 @@ export function WardrobeLibrary({ onAddItem }: Props) {
 
       {/* Category tabs */}
       <div className="flex flex-wrap gap-1.5 px-3 pb-3">
-        {(['all', ...CATEGORIES] as Filter[]).map((c) => (
+        {['all', ...CATEGORIES].map((c) => (
           <button
             key={c}
             onClick={() => setActive(c)}
@@ -77,6 +92,59 @@ export function WardrobeLibrary({ onAddItem }: Props) {
             {c}
           </button>
         ))}
+
+        {/* Custom categories — each removable */}
+        {customCategories.map((c) => (
+          <div
+            key={c}
+            className={`press flex items-center gap-1 rounded-pill py-1 pl-2.5 pr-1.5 text-[11px] ${
+              active === c
+                ? 'bg-accent text-[var(--ink-on-accent)]'
+                : 'bg-canvas text-ink-secondary hover:bg-pearl'
+            }`}
+          >
+            <button onClick={() => setActive(c)} className="capitalize">
+              {c}
+            </button>
+            <button
+              onClick={() => deleteCat(c)}
+              title={`Delete “${c}” category`}
+              aria-label={`Delete ${c} category`}
+              className="rounded-full p-0.5 opacity-60 hover:opacity-100"
+            >
+              <X size={11} />
+            </button>
+          </div>
+        ))}
+
+        {/* Add a custom category */}
+        {adding ? (
+          <input
+            autoFocus
+            value={newCat}
+            onChange={(e) => setNewCat(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitAdd();
+              if (e.key === 'Escape') {
+                setNewCat('');
+                setAdding(false);
+              }
+            }}
+            onBlur={() => (newCat.trim() ? commitAdd() : setAdding(false))}
+            placeholder="New category…"
+            className="w-28 rounded-pill border border-[var(--accent-focus)] bg-canvas px-2.5 py-1 text-[11px] outline-none"
+          />
+        ) : (
+          <button
+            onClick={() => setAdding(true)}
+            title="Add a custom category"
+            aria-label="Add a custom category"
+            className="press flex items-center gap-1 rounded-pill border border-dashed border-[var(--border-subtle)] px-2 py-1 text-[11px] text-ink-muted hover:bg-pearl hover:text-ink"
+          >
+            <Plus size={12} />
+          </button>
+        )}
+
         {/* Built-in mannequin parts library */}
         <button
           onClick={() => setActive('body')}

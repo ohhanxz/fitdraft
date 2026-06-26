@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CanvasItem, GarmentAngle, GarmentItem, Outfit } from '../types';
+import { CATEGORIES, type CanvasItem, type GarmentAngle, type GarmentItem, type Outfit } from '../types';
 import { initialZIndex } from '../lib/garmentZOrder';
 import { deleteImage, putImage, getImageUrl } from '../lib/imageStore';
 import { BODY_PARTS, findBodyPart } from '../lib/bodyParts';
@@ -20,6 +20,11 @@ interface WardrobeState {
   setEditingGarment: (id: string | null) => void;
   figure: FigureGuide;
   setFigure: (f: FigureGuide) => void;
+
+  // Custom (user-defined) categories, alongside the built-in CATEGORIES.
+  customCategories: string[];
+  addCategory: (name: string) => string | null; // returns the stored name, or null if invalid/dupe-of-builtin
+  removeCategory: (name: string) => void;
 
   // Wardrobe
   addGarment: (garment: Omit<GarmentItem, 'id' | 'addedAt'>) => GarmentItem;
@@ -58,6 +63,27 @@ export const useWardrobe = create<WardrobeState>()(
       outfits: [],
       editingGarmentId: null,
       figure: 'off',
+      customCategories: [],
+
+      addCategory: (name) => {
+        const trimmed = name.trim().replace(/\s+/g, ' ');
+        if (!trimmed) return null;
+        const lower = trimmed.toLowerCase();
+        if (CATEGORIES.some((c) => c.toLowerCase() === lower)) return null; // already a built-in
+        const existing = get().customCategories.find((c) => c.toLowerCase() === lower);
+        if (existing) return existing;
+        set((s) => ({ customCategories: [...s.customCategories, trimmed] }));
+        return trimmed;
+      },
+
+      removeCategory: (name) =>
+        set((s) => ({
+          customCategories: s.customCategories.filter((c) => c !== name),
+          // Don't orphan garments — move them to a safe built-in default.
+          garments: s.garments.map((g) =>
+            g.category === name ? { ...g, category: 'accessories' } : g,
+          ),
+        })),
 
       setEditingGarment: (id) => set({ editingGarmentId: id }),
       setFigure: (f) => set({ figure: f }),
@@ -262,7 +288,12 @@ export const useWardrobe = create<WardrobeState>()(
         }
         return persisted;
       },
-      partialize: (s) => ({ garments: s.garments, outfits: s.outfits, figure: s.figure }),
+      partialize: (s) => ({
+        garments: s.garments,
+        outfits: s.outfits,
+        figure: s.figure,
+        customCategories: s.customCategories,
+      }),
     },
   ),
 );

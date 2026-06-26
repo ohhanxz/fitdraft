@@ -41,8 +41,9 @@ export const GARMENT_ANGLES: GarmentAngle[] = ['front', 'side', 'back'];
 
 export interface GarmentItem {
   id: string;
+  // A built-in GarmentCategory or a user-defined custom category (free string).
+  category: string;
   name: string;
-  category: GarmentCategory;
   images: GarmentImages;
   sourceUrl?: string;
   price?: number; // regular price, in priceCurrency

@@ -4,7 +4,6 @@ import {
   CATEGORIES,
   GARMENT_ANGLES,
   type GarmentAngle,
-  type GarmentCategory,
   type GarmentImages,
   type GarmentItem,
 } from '../../types';
@@ -30,7 +29,7 @@ type Slots = Record<GarmentAngle, Slot>;
 const ANGLE_LABEL: Record<GarmentAngle, string> = { front: 'Front', side: 'Side', back: 'Back' };
 
 export function ItemEditor({ mode, garment, active, onClose }: Props) {
-  const { addGarment, updateGarment } = useWardrobe();
+  const { addGarment, updateGarment, customCategories, addCategory } = useWardrobe();
   const { remove } = useBackgroundRemoval();
 
   const [stage, setStage] = useState<'import' | 'details'>(mode === 'edit' ? 'details' : 'import');
@@ -39,7 +38,26 @@ export function ItemEditor({ mode, garment, active, onClose }: Props) {
   const [busy, setBusy] = useState<GarmentAngle | null>(null);
   const [target, setTarget] = useState<GarmentAngle>('front');
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<GarmentCategory>('tops');
+  const [category, setCategory] = useState<string>('tops');
+
+  // Native <select> can't host inline UI, so "+ Add new category…" prompts.
+  function onCategoryChange(value: string) {
+    if (value !== '__add__') {
+      setCategory(value);
+      return;
+    }
+    const input = window.prompt('New category name (e.g. tennis rackets)');
+    if (!input) return;
+    const created = addCategory(input);
+    if (created) {
+      setCategory(created);
+    } else {
+      // Duplicate of a built-in / existing — just select the existing one.
+      const lower = input.trim().toLowerCase();
+      const match = [...CATEGORIES, ...customCategories].find((c) => c.toLowerCase() === lower);
+      if (match) setCategory(match);
+    }
+  }
   const [price, setPrice] = useState('');
   const [priceCurrency, setPriceCurrency] = useState(HOME_CURRENCY);
   const [onSale, setOnSale] = useState(false);
@@ -377,7 +395,7 @@ export function ItemEditor({ mode, garment, active, onClose }: Props) {
               <span className="label-caps">Category</span>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as GarmentCategory)}
+                onChange={(e) => onCategoryChange(e.target.value)}
                 className="rounded-md border border-[var(--border-subtle)] bg-input px-3 py-2 text-[14px] capitalize outline-none focus:border-[var(--accent-focus)]"
               >
                 {CATEGORIES.map((c) => (
@@ -385,6 +403,12 @@ export function ItemEditor({ mode, garment, active, onClose }: Props) {
                     {c}
                   </option>
                 ))}
+                {customCategories.map((c) => (
+                  <option key={c} value={c} className="capitalize">
+                    {c}
+                  </option>
+                ))}
+                <option value="__add__">+ Add new category…</option>
               </select>
             </label>
           </div>

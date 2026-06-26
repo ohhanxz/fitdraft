@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MoreVertical, ExternalLink } from 'lucide-react';
 import type { GarmentItem } from '../../types';
-import { CATEGORIES, GARMENT_ANGLES, type GarmentAngle, type GarmentCategory } from '../../types';
+import { CATEGORIES, GARMENT_ANGLES, type GarmentAngle } from '../../types';
 import { useImageUrl } from '../../hooks/useImageUrl';
 import { useWardrobe } from '../../store/wardrobeStore';
 import { formatMoney, HOME_CURRENCY } from '../../lib/currency';
@@ -55,6 +55,7 @@ function ViewChip({
 export function ItemCard({ garment }: Props) {
   const frontUrl = useImageUrl(garment.images.front);
   const { updateGarment, removeGarment, setEditingGarment } = useWardrobe();
+  const customCategories = useWardrobe((s) => s.customCategories);
 
   // Price shown in the currency the item was entered in (no conversion).
   const cur = garment.priceCurrency || HOME_CURRENCY;
@@ -179,15 +180,15 @@ export function ItemCard({ garment }: Props) {
             Change category
           </button>
           {catOpen && (
-            <div className="border-y border-[var(--border-subtle)] bg-parchment">
-              {CATEGORIES.map((c) => (
+            <div className="max-h-40 overflow-auto border-y border-[var(--border-subtle)] bg-parchment">
+              {[...CATEGORIES, ...customCategories].map((c) => (
                 <button
                   key={c}
                   className={`block w-full px-5 py-1.5 text-left capitalize hover:bg-pearl ${
                     c === garment.category ? 'text-accent' : ''
                   }`}
                   onClick={() => {
-                    updateGarment(garment.id, { category: c as GarmentCategory });
+                    updateGarment(garment.id, { category: c });
                     setCatOpen(false);
                     setMenuOpen(false);
                   }}

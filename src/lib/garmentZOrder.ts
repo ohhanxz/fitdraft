@@ -15,10 +15,11 @@ export const Z_LAYER: Record<GarmentCategory, number> = {
 
 /** Initial zIndex for a newly placed garment, stacked above existing items in its layer. */
 export function initialZIndex(
-  category: GarmentCategory,
+  category: string,
   existing: number[],
 ): number {
-  const base = Z_LAYER[category];
+  // Custom categories have no fixed layer — stack them with accessories (top).
+  const base = Z_LAYER[category as GarmentCategory] ?? Z_LAYER.accessories;
   const inLayer = existing.filter((z) => z >= base && z < base + 10);
   const top = inLayer.length ? Math.max(...inLayer) : base - 1;
   return Math.min(top + 1, base + 9);
