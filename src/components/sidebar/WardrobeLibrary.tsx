@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Shirt, PersonStanding, Search, X } from 'lucide-react';
-import { CATEGORIES, type GarmentCategory } from '../../types';
+import { CATEGORIES, IMPORT_TAG, type GarmentCategory } from '../../types';
 import { useWardrobe } from '../../store/wardrobeStore';
 import { BODY_PARTS } from '../../lib/bodyParts';
 import { ItemCard } from './ItemCard';
@@ -19,10 +19,12 @@ export function WardrobeLibrary({ onAddItem }: Props) {
 
   const q = query.trim().toLowerCase();
   const filtered = useMemo(() => {
+    // Imported canvas-only images (figures/faces/props) aren't wardrobe items.
+    const wardrobe = garments.filter((g) => !g.tags.includes(IMPORT_TAG));
     const byCategory =
       active === 'all' || active === 'body'
-        ? garments
-        : garments.filter((g) => g.category === active);
+        ? wardrobe
+        : wardrobe.filter((g) => g.category === active);
     if (!q) return byCategory;
     // Match the name or any tag (case-insensitive, substring).
     return byCategory.filter(

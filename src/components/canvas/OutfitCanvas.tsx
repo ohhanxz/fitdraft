@@ -9,9 +9,10 @@ import {
 } from 'react';
 import { Stage, Layer, Rect, Image as KonvaImage, Transformer } from 'react-konva';
 import type Konva from 'konva';
-import type { GarmentAngle, GarmentImages } from '../../types';
+import { IMPORT_TAG, type GarmentAngle, type GarmentImages } from '../../types';
 import { useWardrobe } from '../../store/wardrobeStore';
 import { getImageUrl, putImage } from '../../lib/imageStore';
+import { downscaleBlob, imageDimensions } from '../../lib/imageUtils';
 import { BODY_PARTS, findBodyPart } from '../../lib/bodyParts';
 import { useHtmlImage } from '../../hooks/useHtmlImage';
 import { GarmentNode } from './GarmentNode';
@@ -81,9 +82,12 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
     setSelectedItems,
     updateCanvasItem,
     addToCanvas,
+    addGarment,
     figure,
     setFigure,
   } = useWardrobe();
+
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const sessionRef = useRef<EditSession | null>(null);
   const prevSizeRef = useRef({ width: 0, height: 0 });
@@ -311,6 +315,30 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
       });
     }
     addToCanvas(garmentId, angle, { x: world.x, y: world.y, width: DEFAULT_H * aspect, height: DEFAULT_H });
+  }
+
+  // Import any image straight onto the canvas (a figure, face, prop, …). It
+  // becomes a hidden, canvas-only garment (so outfits still save/load) placed
+  // at the centre of the current view. No background removal — used as-is.
+  async function handleImportFile(file: File) {
+    if (!file.type.startsWith('image/')) return;
+    const scaled = await downscaleBlob(file, 1400);
+    const dims = await imageDimensions(scaled);
+    const key = await putImage(scaled, 'import');
+    const name = (file.name.replace(/\.[^.]+$/, '').trim() || 'Imported image').slice(0, 40);
+    const garment = addGarment({
+      name,
+      category: 'accessories',
+      images: { front: key },
+      tags: [IMPORT_TAG],
+    });
+    // Size to ~420 world units on the long edge, keeping aspect.
+    const aspect = dims.w / dims.h || 1;
+    const long = 420;
+    const w = aspect >= 1 ? long : long * aspect;
+    const h = aspect >= 1 ? long / aspect : long;
+    const center = screenToWorld(size.width / 2, size.height / 2);
+    addToCanvas(garment.id, 'front', { x: center.x, y: center.y, width: w, height: h });
   }
 
   function flip(axis: 'x' | 'y') {
@@ -690,6 +718,19 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
         </div>
       )}
 
+      {/* Hidden file picker for the toolbar's import-image button. */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = '';
+          if (f) void handleImportFile(f);
+        }}
+      />
+
       {/* Photoshop-style brush ring showing where/how big the eraser is. */}
       <div
         ref={brushCursorRef}
@@ -713,6 +754,7 @@ export const OutfitCanvas = forwardRef<CanvasHandle>((_props, ref) => {
         setBrush={setBrush}
         opacity={selectionOpacity}
         setOpacity={setSelectionOpacity}
+        onImport={() => importInputRef.current?.click()}
         onFlipH={() => flip('x')}
         onFlipV={() => flip('y')}
         hasSelection={unlockedSelected.length > 0}

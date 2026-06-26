@@ -5,6 +5,7 @@ import {
   FlipVertical2,
   PersonStanding,
   Droplet,
+  ImagePlus,
 } from 'lucide-react';
 import type { FigureGuide } from '../../store/wardrobeStore';
 
@@ -17,6 +18,7 @@ interface Props {
   setBrush: (n: number) => void;
   opacity: number; // 0–1 opacity of the current selection
   setOpacity: (n: number) => void;
+  onImport: () => void;
   onFlipH: () => void;
   onFlipV: () => void;
   hasSelection: boolean; // ≥1 unlocked selected (flip / opacity)
@@ -59,6 +61,7 @@ export function CanvasToolbar({
   setBrush,
   opacity,
   setOpacity,
+  onImport,
   onFlipH,
   onFlipV,
   hasSelection,
@@ -68,6 +71,10 @@ export function CanvasToolbar({
 }: Props) {
   return (
     <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-pill border border-[var(--border-subtle)] bg-white/85 px-1.5 py-1 shadow-panel backdrop-blur-md">
+      <ToolBtn title="Import an image onto the canvas (figure, face, prop…)" onClick={onImport}>
+        <ImagePlus size={16} />
+      </ToolBtn>
+      <div className="mx-1 h-5 w-px bg-[var(--border-subtle)]" />
       <ToolBtn active={tool === 'move'} title="Move / select" onClick={() => setTool('move')}>
         <MousePointer2 size={16} />
       </ToolBtn>

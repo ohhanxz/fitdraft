@@ -23,6 +23,11 @@ export const CATEGORIES: GarmentCategory[] = [
   'underwear',
 ];
 
+// Tag marking a garment that was imported straight onto the canvas (a figure,
+// face, prop, etc.). These are canvas-only: hidden from the wardrobe library
+// and the cart, but still real garments so outfits save/load correctly.
+export const IMPORT_TAG = '__import';
+
 // A garment can carry multiple angle images; `front` is required.
 export type GarmentAngle = 'front' | 'side' | 'back';
 

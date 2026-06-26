@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ShoppingBag, ChevronRight, ExternalLink } from 'lucide-react';
-import type { GarmentItem } from '../types';
+import { IMPORT_TAG, type GarmentItem } from '../types';
 import { useWardrobe } from '../store/wardrobeStore';
 import { useImageUrl } from '../hooks/useImageUrl';
 import { formatMoney, HOME_CURRENCY } from '../lib/currency';
@@ -77,10 +77,14 @@ export function CartSidebar() {
 
   // Unique garments on the canvas + how many times each appears (dupes count once for price).
   const { rows, totals, saved, count } = useMemo(() => {
+    const importedIds = new Set(
+      garments.filter((g) => g.tags.includes(IMPORT_TAG)).map((g) => g.id),
+    );
     const counts = new Map<string, number>();
     for (const ci of canvasItems) {
-      // Mannequin body parts aren't purchasable — leave them out of the cart.
+      // Mannequin body parts and imported images aren't purchasable.
       if (findBodyPart(ci.garmentId)) continue;
+      if (importedIds.has(ci.garmentId)) continue;
       counts.set(ci.garmentId, (counts.get(ci.garmentId) ?? 0) + 1);
     }
 
